@@ -1,0 +1,51 @@
+[{
+  "category": "Indian giant squirrel",
+  "userId": {
+    "$oid": "5f252c3ffc13ae5b4b000000"
+  }
+}, {
+  "category": "Common shelduck",
+  "userId": {
+    "$oid": "5f252c3ffc13ae5b4b000001"
+  }
+}, {
+  "category": "Porcupine, crested",
+  "userId": {
+    "$oid": "5f252c3ffc13ae5b4b000002"
+  }
+}, {
+  "category": "Cottonmouth",
+  "userId": {
+    "$oid": "5f252c3ffc13ae5b4b000003"
+  }
+}, {
+  "category": "Sloth bear",
+  "userId": {
+    "$oid": "5f252c3ffc13ae5b4b000004"
+  }
+}, {
+  "category": "Baboon, chacma",
+  "userId": {
+    "$oid": "5f252c3ffc13ae5b4b000005"
+  }
+}, {
+  "category": "Skink, african",
+  "userId": {
+    "$oid": "5f252c3ffc13ae5b4b000006"
+  }
+}, {
+  "category": "Whale, baleen",
+  "userId": {
+    "$oid": "5f252c3ffc13ae5b4b000007"
+  }
+}, {
+  "category": "Darter, african",
+  "userId": {
+    "$oid": "5f252c3ffc13ae5b4b000008"
+  }
+}, {
+  "category": "White-eye, cape",
+  "userId": {
+    "$oid": "5f252c3ffc13ae5b4b000009"
+  }
+}]

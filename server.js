@@ -3,6 +3,7 @@ require('dotenv').config({ path: './config/.env' });
 const express = require('express');
 const db = require('./config/db');
 const router = require('./routes/search');
+const {handleError} = require('./utils/errorHandler');
 const app = express();
 const port = process.env.PORT;
 
@@ -17,6 +18,9 @@ const port = process.env.PORT;
 
 app.get('/', (req, res) => res.send('Hello World!'));
 app.use('/api/v1', router);
+app.use((err, req, res, next) => {
+    handleError(err, res);
+});
 // app.get('/product', (req, res) => {
 //     console.log(Product.find({}, function (err, docs) {
 //         if (!err) {

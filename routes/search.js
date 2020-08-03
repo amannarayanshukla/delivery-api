@@ -5,6 +5,6 @@ const {search} = require('../controller/search');
 const router = express.Router();
 
 router
-    .route('/search/:text')
+    .route('/:text')
     .get(search);
 module.exports = router;

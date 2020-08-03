@@ -1,7 +1,6 @@
 'use strict';
-const {asyncHandler} = require('../utils/asyncHandler')
+const {asyncHandler} = require('../utils/asyncHandler');
 const pagination = (req, res) => (model) => async (query) => {
-
     const page = parseInt(req.query.page);
     const limit = parseInt(req.query.limit);
 
@@ -12,23 +11,23 @@ const pagination = (req, res) => (model) => async (query) => {
 
     result.data = await model.aggregate([
         {
-            "$facet": {
-                "data": [
-                    { "$match": query },
-                    { "$skip": startIndex },
-                    { "$limit": limit }
+            '$facet': {
+                'data': [
+                    { '$match': query },
+                    { '$skip': startIndex },
+                    { '$limit': limit }
                 ],
-                "totalCount": [
-                    { "$match": query },
-                    { "$group": {
-                            "_id": null,
-                            "count": { "$sum": 1 }
-                        }
+                'totalCount': [
+                    { '$match': query },
+                    { '$group': {
+                        '_id': null,
+                        'count': { '$sum': 1 }
+                    }
                     }
                 ]
             }
         }
-    ])
+    ]);
 
     if (endIndex < result.data[0].totalCount[0].count) {
         result.next = {

@@ -32,6 +32,7 @@ app.get('/', (req, res) => res.send('Hello World!'));
 app.use('/api/v1/search', search);
 app.use('/api/v1/shops', shops);
 app.use('/api/v1/auth', auth);
+app.use('/api/v1/user', user);
 
 app.all('*', (req, res, next) => {
     next(new ErrorHandler(404, `Can't find ${req.originalUrl} on this server!`));

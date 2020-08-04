@@ -1,4 +1,5 @@
 'use strict';
+const mongoose = require('mongoose');
 const nodemailer = require('nodemailer');
 const uuidv4 = require('uuid').v4;
 
@@ -30,40 +31,135 @@ exports.register = asyncHandler(async (req, res, next) => {
     });
 
 
-    await user.save();
-    return res.json(user)
-    // if (!user) {
-    //     return next(
-    //         new ErrorHandler(404, 'Enter while inserting a registering a new user')
-    //     );
-    // }
-    //
-    // // create a new document in TokenSchema and link it to the user
-    // let token = new Tokens({
-    //     userId: uuid
-    // });
-    // token.accessToken = token.createAccessToken();
-    // token.refreshToken = token.createRefreshToken();
-    //
-    // token = await token.save();
-    //
-    // user.token = token;
-    //
-    // client.set(uuid, user.token.accessToken);
-    //
-    // res
-    //     .cookie('authentication_accessToken', user.accessToken, {
-    //         httpOnly: true,
-    //         secure: process.env.NODE_ENV === 'production'
-    //     })
-    //     .cookie('authentication_refreshToken', user.refreshToken, {
-    //         httpOnly: true,
-    //         secure: process.env.NODE_ENV === 'production'
-    //     })
-    //     .cookie('authentication_uuid', uuid, {
-    //         httpOnly: true,
-    //         secure: process.env.NODE_ENV === 'production'
-    //     });
-    //
-    // return responseHandler(req, res)(200, true, {}, {}, user.length, 'success', user);
+    user = await user.save();
+
+    if (!user) {
+        return next(new ErrorHandler(404, 'Enter while inserting a registering a new user'));
+    }
+
+    // create a new document in TokenSchema and link it to the user
+    let token = new Tokens({
+        userId: user.uuid
+    });
+
+    let resetToken = new ResetTokens({
+        userId: user.uuid
+    })
+
+    token = await token.save();
+    resetToken = await resetToken.save();
+
+    let data = {
+        user,
+        token,
+        resetToken
+    }
+
+    //setting the token in Redis
+    client.set(data.user.uuid, data.token.accessToken);
+
+    res
+        .cookie('authentication_accessToken', user.accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production'
+        })
+        .cookie('authentication_uuid', uuid, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production'
+        });
+
+    return responseHandler(req, res)(200, true, {}, {}, 1, 'success', data);
 });
+
+
+/*
+*   @desc login a user
+*   @route POST /api/v1/auth/login
+*   @access Public
+*   @response accessToken resetToken uuid along with user information
+*/
+exports.login = asyncHandler(async (req, res, next) => {
+    const { email, password } = req.body;
+    let uuid, accessToken;
+    if (!email || !password) {
+        return next(new ErrorHandler(400, 'Please provide email and password'));
+    }
+
+    let user = await Users.findOne({
+        email
+    }).select('+password');
+
+    if (!user) {
+        return next(new ErrorHandler(401, 'Invalid credentials'));
+    }
+
+    const result = await user.comparePassword(password);
+    if (!result) {
+        return next(new ErrorHandler(401, 'Invalid credentials'));
+    }
+
+    let token = await Tokens.findOne({userId: user.uuid})
+    let resetToken = await ResetTokens.findOne({userId: user.uuid})
+
+    token.accessToken = await token.createAccessToken();
+
+    token = await token.save();
+
+    let data = {
+        user,
+        token,
+        resetToken
+    }
+
+    //setting the token in Redis
+    client.set(data.user.uuid, data.token.accessToken);
+
+    res
+        .cookie('authentication_accessToken', accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production'
+        })
+        .cookie('authentication_uuid', uuid, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production'
+        });
+
+    return responseHandler(req, res)(200, true, {}, {}, 1, 'success', data);
+});
+
+
+/*
+*   @desc logout a user
+*   @route POST /api/v1/auth/logout
+*   @access private
+*   @response no data
+ */
+exports.logout = asyncHandler(async (req, res, next) => {
+    const user = await Users.findOne({ email: req.body.email });
+    let token = await Tokens.findOne({userId: user.uuid});
+    let resetToken = await ResetTokens.findOne({userId: user.uuid});
+
+    token.accessToken = undefined;
+    token = await token.save();
+
+    resetToken.resetPasswordToken = undefined;
+    resetToken.resetPasswordExpire = undefined;
+    resetToken = await resetToken.save();
+
+    let data = {
+        user,
+        token,
+        resetToken
+    }
+
+    // deleting a key from Redis
+    const reply = await client.del(data.user.uuid);
+
+    // reply is null when the key is missing
+    if (!reply) {
+        return next(new ErrorHandler(400, `Invalid access token`));
+    }
+    return responseHandler(req, res)(200, true, {}, {}, 0, 'success', {});
+});
+
+

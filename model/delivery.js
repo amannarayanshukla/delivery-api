@@ -5,10 +5,10 @@ const Schema = mongoose.Schema;
 
 const DeliverySchema = new Schema(
     {
-        userId: [{
-            type: Schema.Types.ObjectId,
+        userId: {
+            type: String,
             ref: 'Users'
-        }],
+        },
         uuid: {
             type: String,
             index: true
@@ -18,10 +18,6 @@ const DeliverySchema = new Schema(
             trim: true,
             required: true
         },
-        addressId: [{
-            type: Schema.Types.ObjectId,
-            ref: 'Addresses'
-        }],
         nickname: {
             type: String,
             trim: true
@@ -30,6 +26,9 @@ const DeliverySchema = new Schema(
             type: Boolean,
             default: false
         }
+    },
+    {
+        timestamps: true
     }
 );
 

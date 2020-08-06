@@ -6,6 +6,8 @@ const crypto = require('crypto');
 const Users = require('../model/user');
 const Tokens = require('../model/token');
 const ResetTokens = require('../model/resetToken');
+const Deliveries = require('../model/delivery');
+const Addresses = require('../model/address');
 
 const { ErrorHandler } = require('../utils/errorHandler');
 const { asyncHandler } = require('../utils/asyncHandler');
@@ -88,7 +90,7 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
 
 /*
 *   @desc reset user's password
-*   @route POST /api/v1/auth/reset
+*   @route POST /api/v1/user/reset/:token
 *   @access public
 *   @response show success message and redirect user to login page
 */
@@ -146,18 +148,115 @@ exports.addPassword = asyncHandler(async (req, res, next) => {
 });
 
 /*
-*   @desc get users information
-*   @route GET /api/v1/me
+*   @desc get only important users information
+*   @route GET /api/v1/user/me
 *   @access private
 *   @response
  */
 exports.me = asyncHandler(async (req, res, next) => {
-    const user = Users.findOne({ email: req.email });
+    const user = await Users.findOne({ email: req.email });
     if (!user) {
         return next(new ErrorHandler(400, `user not found`));
     }
     const data = {
         user
     }
+
     return responseHandler(req,res)(200, true, {}, {}, 1, 'success', data)
 });
+
+/*
+*   @desc get all user information
+*   @route GET /api/v1/user/profile
+*   @access private
+*   @response all user information + delivery address
+* */
+
+exports.getProfile = asyncHandler(async (req, res, next) => {
+    const user = await Users.findOne({email: req.email})
+    const delivery = await Deliveries.find({userId: user.uuid}) || {};
+
+    const address = await Promise.allSettled(delivery.map(item => {
+        return Addresses.find({deliveryId: item.uuid}) || {};
+    }))
+
+    const data = {
+        user,
+        delivery,
+        address
+    }
+
+    return responseHandler(req,res)(200, true, {}, {}, 1, 'success', data)
+})
+
+/*
+*   @desc update the user information + delivery address
+*   @route POST /api/v1/user/update-profile
+*   @access private
+*   @response the document after updating
+* */
+exports.updateProfile = asyncHandler(async (req, res, next) => {
+    let user = {};
+    let delivery = {};
+    let address = {};
+    let token = {};
+
+    // user document update
+    if(req.body.user) {
+        user = await Users.findOneAndUpdate({email: req.email}, req.body.user, {new: true})
+
+        if(req.body.user.email){
+            token = await Tokens.findOne({userId: user.uuid})
+            token.accessToken = await token.createAccessToken();
+            token = await token.save();
+
+            //setting the token in Redis
+            client.set(user.uuid, token.accessToken);
+
+            res
+                .cookie('authentication_accessToken', token.accessToken, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production'
+                })
+                .cookie('authentication_uuid', user.uuid, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production'
+                });
+        }
+    }
+
+    // deliver document update
+    if(req.body.delivery){
+        // update existing delivery address
+        if(req.body.delivery.uuid){
+            delivery = await Deliveries.findOneAndUpdate({uuid: req.body.delivery.uuid}, req.body.delivery, {new: true});
+            address = await Addresses.findOneAndUpdate({uuid:req.body.address.uuid}, req.body.address, {new: true});
+        } else {
+
+            // add new delivery address
+            req.body.delivery.uuid = uuidv4();
+            delivery = new Deliveries(req.body.delivery);
+            delivery = await delivery.save();
+            if (!delivery) {
+                return next(new ErrorHandler(404, 'error while inserting a new delivery'));
+            }
+
+            req.body.address.uuid = uuidv4();
+            req.body.address.deliveryId = delivery.uuid;
+            address = new Addresses(req.body.address);
+            address = await address.save();
+            if (!address) {
+                return next(new ErrorHandler(404, 'error while inserting a new address'));
+            }
+        }
+    }
+
+    const data = {
+        user,
+        delivery,
+        address,
+        token,
+    }
+    return responseHandler(req,res)(200, true, {}, {}, 1, 'success', data)
+})
+

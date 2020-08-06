@@ -1,7 +1,7 @@
 'use strict';
 const express = require('express');
 
-const {forgot, resetPassword, addPassword, me} = require('../controller/user');
+const {forgot, resetPassword, addPassword, me, getProfile, updateProfile} = require('../controller/user');
 const jwtVerification = require('../middleware/jwt')
 
 const router = express.Router();
@@ -18,5 +18,13 @@ router
 router
     .route('/me')
     .get(jwtVerification, me)
+
+router
+    .route('/profile')
+    .get(jwtVerification, getProfile)
+
+router
+    .route('/update-profile')
+    .post(jwtVerification, updateProfile);
 
 module.exports = router;

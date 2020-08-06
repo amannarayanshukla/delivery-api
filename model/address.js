@@ -4,6 +4,10 @@ const Schema = mongoose.Schema;
 
 const AddressSchema = new Schema(
     {
+        deliveryId: {
+            type: String,
+            ref: 'Deliveries'
+        },
         uuid: {
             type: String,
             index: true

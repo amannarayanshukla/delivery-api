@@ -34,7 +34,7 @@ exports.register = asyncHandler(async (req, res, next) => {
     user = await user.save();
 
     if (!user) {
-        return next(new ErrorHandler(404, 'Enter while inserting a registering a new user'));
+        return next(new ErrorHandler(404, 'error while registering a new user'));
     }
 
     // create a new document in TokenSchema and link it to the user
@@ -59,11 +59,11 @@ exports.register = asyncHandler(async (req, res, next) => {
     client.set(data.user.uuid, data.token.accessToken);
 
     res
-        .cookie('authentication_accessToken', user.accessToken, {
+        .cookie('authentication_accessToken', data.token.accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production'
         })
-        .cookie('authentication_uuid', uuid, {
+        .cookie('authentication_uuid', data.user.uuid, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production'
         });
@@ -82,7 +82,7 @@ exports.login = asyncHandler(async (req, res, next) => {
     const { email, password } = req.body;
     let uuid, accessToken;
     if (!email || !password) {
-        return next(new ErrorHandler(400, 'Please provide email and password'));
+        return next(new ErrorHandler(400, 'please provide email and password'));
     }
 
     let user = await Users.findOne({
@@ -90,12 +90,12 @@ exports.login = asyncHandler(async (req, res, next) => {
     }).select('+password');
 
     if (!user) {
-        return next(new ErrorHandler(401, 'Invalid credentials'));
+        return next(new ErrorHandler(401, 'invalid credentials'));
     }
 
     const result = await user.comparePassword(password);
     if (!result) {
-        return next(new ErrorHandler(401, 'Invalid credentials'));
+        return next(new ErrorHandler(401, 'invalid credentials'));
     }
 
     let token = await Tokens.findOne({userId: user.uuid})
@@ -115,11 +115,11 @@ exports.login = asyncHandler(async (req, res, next) => {
     client.set(data.user.uuid, data.token.accessToken);
 
     res
-        .cookie('authentication_accessToken', accessToken, {
+        .cookie('authentication_accessToken', data.token.accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production'
         })
-        .cookie('authentication_uuid', uuid, {
+        .cookie('authentication_uuid', data.user.uuid, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production'
         });

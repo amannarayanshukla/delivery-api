@@ -14,6 +14,9 @@ const ResetTokenSchema = Schema(
             index: true
         },
         resetPasswordExpire: Date
+    },
+    {
+        timestamps: true
     }
 );
 

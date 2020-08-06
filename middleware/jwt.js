@@ -9,14 +9,14 @@ const { ErrorHandler } = require('../utils/errorHandler');
 // check if the JWT is valid and also present in Redis
 const jwtVerification = asyncHandler(async (req, res, next) => {
     let cookieValues, accessToken, uuid;
-    // if (req.headers.cookie) {
-    //     cookieValues = cookie.parse(req.headers.cookie);
-    //     accessToken = cookieValues.authentication_accessToken;
-    //     uuid = cookieValues.authentication_uuid;
-    // } else {
+    if (req.headers.cookie) {
+        cookieValues = cookie.parse(req.headers.cookie);
+        accessToken = cookieValues.authentication_accessToken;
+        uuid = cookieValues.authentication_uuid;
+    } else {
         accessToken = req.body.accessToken;
         uuid = req.body.uuid;
-    // }
+    }
 
     const decoded = jwt.verify(accessToken, process.env.JWT_ACCESS_SECRET_KEY);
 

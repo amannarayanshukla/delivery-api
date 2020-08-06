@@ -22,13 +22,18 @@ db();
 
 const port = process.env.PORT;
 
+
 // create application/json parser
 app.use(bodyParser.json());
 
-app.use(cookieParser());
-app.use(logger('dev'));
 
-app.get('/', (req, res) => res.send('Hello World!'));
+app.use( cookieParser() );
+app.use( logger('dev') );
+
+app.use('/health-check', (req, res) => {
+    res.send('Working');
+});
+
 app.use('/api/v1/search', search);
 app.use('/api/v1/shops', shops);
 app.use('/api/v1/auth', auth);

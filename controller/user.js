@@ -174,11 +174,21 @@ exports.me = asyncHandler(async (req, res, next) => {
 
 exports.getProfile = asyncHandler(async (req, res, next) => {
     const user = await Users.findOne({email: req.email})
-    const delivery = await Deliveries.find({userId: user.uuid}) || {};
+    let delivery = {};
+    let address = {};
+    if (!user) {
+        return next(
+            new ErrorHandler(400, 'Invalid password reset token or it has expired.')
+        );
+    }
 
-    const address = await Promise.allSettled(delivery.map(item => {
-        return Addresses.find({deliveryId: item.uuid}) || {};
-    }))
+    delivery = await Deliveries.find({userId: user.uuid}) || {};
+
+    if(delivery){
+         address = await Promise.allSettled(delivery.map(item => {
+            return Addresses.find({deliveryId: item.uuid}) || {};
+        }))
+    }
 
     const data = {
         user,
@@ -195,6 +205,7 @@ exports.getProfile = asyncHandler(async (req, res, next) => {
 *   @access private
 *   @response the document after updating
 * */
+//TODO: send address in delivery not separately
 exports.updateProfile = asyncHandler(async (req, res, next) => {
     let user = {};
     let delivery = {};
@@ -204,6 +215,12 @@ exports.updateProfile = asyncHandler(async (req, res, next) => {
     // user document update
     if(req.body.user) {
         user = await Users.findOneAndUpdate({email: req.email}, req.body.user, {new: true})
+
+        if (!user) {
+            return next(
+                new ErrorHandler(400, 'Invalid password reset token or it has expired.')
+            );
+        }
 
         if(req.body.user.email){
             token = await Tokens.findOne({userId: user.uuid})
@@ -260,3 +277,72 @@ exports.updateProfile = asyncHandler(async (req, res, next) => {
     return responseHandler(req,res)(200, true, {}, {}, 1, 'success', data)
 })
 
+/*
+*   @desc get the checkout information
+*   @route GET /api/v1/user/checkout
+*   @access private
+*   @response will include Delivery address + Delivery Schedule + contact number + cart
+* */
+exports.getCheckout = asyncHandler(async (req,res, next) => {
+    let user = {};
+    let delivery = {};
+    let address = {};
+    let deliverySchedule = {};
+    let data = {
+        delivery: []
+    }
+
+    user = await Users.findOne({email: req.email});
+    if (!user) {
+        return next(
+            new ErrorHandler(400, 'Invalid password reset token or it has expired.')
+        );
+    }
+
+    data.user = user;
+
+    delivery = await Deliveries.find({userId: user.uuid}) || {};
+
+    address = await Promise.allSettled(delivery.map(item => {
+        return Addresses.find({deliveryId: item.uuid}) || {};
+    }))
+
+
+    //inserting the address in the delivery object
+    if(delivery){
+        delivery.map(del => {
+            address.map(add => {
+                if(add.value[0].deliveryId === del.uuid){
+                    let item = add.value[0];
+                    item.deliveryId = del;
+                    data.delivery.push(item);
+                }
+            })
+        })
+    }
+
+
+
+    //TODO: get delivery schedules from database
+    deliverySchedule = [
+        {
+            name: "Express-delivery",
+            timeSlot: "90 minutes express delivery"
+        },
+        {
+            name: "Express-delivery 1",
+            timeSlot: "90 minutes express delivery 1"
+        },
+        {
+            name: "Express-delivery 2",
+            timeSlot: "90 minutes express delivery 2"
+        }
+    ]
+    data.deliverySchedule = deliverySchedule;
+
+    //TODO: get cart from database
+    data.cart = {}
+
+    return responseHandler(req,res)(200, true, {}, {}, 1, 'success', data)
+
+})

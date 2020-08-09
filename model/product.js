@@ -2,11 +2,12 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+// from owner's app
 const ProductSchema = new Schema({
-    userId: [{
+    shopId: {
         type: Schema.Types.ObjectId,
-        ref: 'User'
-    }]
+        ref: 'Shops'
+    }
 }, { strict: false });
 
-module.exports = mongoose.model('Product', ProductSchema);
+module.exports = mongoose.model('Products', ProductSchema);

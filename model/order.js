@@ -4,18 +4,18 @@ const Schema = mongoose.Schema;
 
 const OrderSchema = new Schema(
     {
-        userId: [{
-            type: Schema.Types.ObjectId,
+        userId: {
+            type: String,
             ref: 'Users'
-        }],
+        },
         uuid: {
             type: String,
             index: true
         },
-        deliveryId: [{
-            type: Schema.Types.ObjectId,
+        deliveryId: {
+            type: String,
             ref: 'Deliveries'
-        }],
+        },
         amount: {
             type: Number,
             trim: true,

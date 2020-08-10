@@ -7,7 +7,7 @@ const ResetTokenSchema = Schema(
     {
         userId: {
             type: String,
-            ref: 'User'
+            ref: 'Users'
         },
         resetPasswordToken: {
             type: String,

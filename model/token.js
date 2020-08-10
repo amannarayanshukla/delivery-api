@@ -10,7 +10,7 @@ const TokenSchema = Schema(
     {
         userId: {
             type: String,
-            ref: 'User'
+            ref: 'Users'
         },
         accessToken: String
     },

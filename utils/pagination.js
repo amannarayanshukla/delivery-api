@@ -29,7 +29,7 @@ const pagination = (req, res) => (model) => async (query) => {
         }
     ]);
 
-    if (endIndex < result.data[0].totalCount[0].count) {
+    if (result && result.data && result.data[0].totalCount && result.data[0].totalCount[0] && result.data[0].totalCount[0].count && endIndex < result.data[0].totalCount[0].count) {
         result.next = {
             page: page + 1,
             limit

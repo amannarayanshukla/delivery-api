@@ -7,7 +7,7 @@ const {addToCart} = require('../controller/cart');
 const router = express.Router();
 
 router
-    .route('/add')
+    .route('/')
     .post(addToCart)
 
 module.exports = router;

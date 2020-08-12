@@ -16,11 +16,11 @@ const db = async () => {
     mongoose.set('debug', true);
 
     client.on('connect', function () {
-        console.error(`Redis default connection is open`.cyan);
+        console.log(`Redis default connection is open`.cyan);
     });
 
     client.on('error', function (error) {
-        console.error(`Redis default error has occured ${error}`.red);
+        console.error(`Redis default error has occurred ${error}`.red);
     });
 
     mongoose.connection.on('connected', function () {

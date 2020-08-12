@@ -21,7 +21,7 @@ exports.search = asyncHandler(async (req, res) => {
 
     const query = {'productName': {$regex: text, $options: 'i'}};
     let data = await pagination(req, res)(Product)(query);
-    let total = data.data[0].totalCount[0].count;
+    let total = data && data.data && data.data[0] && data.data[0].totalCount[0] && data.data[0].totalCount[0].count ? data.data[0].totalCount[0].count : 0;
     let result = data.data[0].data;
     return responseHandler(req, res)(200, true, data.next, data.prev, total, 'success', result);
 });

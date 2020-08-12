@@ -14,6 +14,7 @@ const search = require('./routes/search');
 const shops = require('./routes/shop');
 const auth = require('./routes/auth');
 const user = require('./routes/user');
+const cart = require('./routes/cart');
 
 const app = express();
 
@@ -38,6 +39,7 @@ app.use('/api/v1/search', search);
 app.use('/api/v1/shops', shops);
 app.use('/api/v1/auth', auth);
 app.use('/api/v1/user', user);
+app.use('/api/v1/cart',cart);
 
 app.all('*', (req, res, next) => {
     next(new ErrorHandler(404, `Can't find ${req.originalUrl} on this server!`));

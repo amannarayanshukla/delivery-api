@@ -4,10 +4,10 @@ const Schema = mongoose.Schema;
 
 const CartSchema = new Schema(
     {
-        orderUuid: [{
-            type: Schema.Types.ObjectId,
+        orderUuid: {
+            type: String,
             ref: 'Orders'
-        }],
+        },
         uuid: {
             type: String,
             index: true

@@ -4,10 +4,10 @@ const Schema = mongoose.Schema;
 
 const AmountSchema = Schema(
     {
-        orderId: [{
-            type: Schema.Types.ObjectId,
+        orderId: {
+            type: String,
             ref: 'Orders'
-        }],
+        },
         itemSubtotal: {
             type: Number
         },

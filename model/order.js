@@ -21,6 +21,14 @@ const OrderSchema = new Schema(
             trim: true,
             required: true
         },
+        status: {
+            type: String,
+            index: true
+        },
+        transactionId : {
+            type: String,
+            index: true
+        },
         orderDate: Date,
         deliveryDate: Date,
         paymentMethod: {

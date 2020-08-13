@@ -13,7 +13,7 @@ const {pagination} = require('../utils/pagination');
 
 /*
 *   @desc add to cart
-*   @route POST /api/v1/cart/add
+*   @route POST /api/v1/cart
 *   @access Public
 *   @params
 *       1. product-id
@@ -115,3 +115,48 @@ exports.addToCart = asyncHandler(async (req,res, next) => {
 
     return responseHandler(req,res)(200, true, {}, {}, 0, 'cart updated', data)
 })
+
+/*
+*   @desc apply offer to cart
+*   @route POST /api/v1/cart/:cart-id/:offer
+*   @access Public
+*   @param
+*       1. local or global offers
+*   @response if valid update cart or send error
+*
+* */
+// TODO: check the offer and update the cart model with valid offer id and return cart object with new total
+exports.checkOffers = asyncHandler(async (req,res, next)=>{
+    if(!req.params){
+        return next(new ErrorHandler(400,'no cart id or offer found'));
+    }
+    return res.json({
+        "message": "check the offer and update the cart model with valid offer id and return cart object with new total"
+    })
+})
+
+/*
+*   @desc checkout
+*   @route GET /api/v1/cart/:cart-id/checkout
+*   @access Public
+*   @param cart-id
+*   @response
+*           1. If all items available in the quantity show success
+*           2. If some items missing or quantity is less ask the user to change
+*              return the items which are missing return the number of item user
+*              can choose
+*
+*
+*   things to consider
+*       check if the item is present
+*       check if the quantity is less than the requested quantity for all the items -
+*       yes - decrement the quantity of the items
+*           - create order document mark status as pending
+*             and amount document and update the orderId in cart document
+*       no - send error message along with the
+*
+*   Now make the payment request for the total amount
+*   success -
+*   failed instantaneously - roll back the quantity
+*   pending - for how long ?? 10 mins  or so
+* */

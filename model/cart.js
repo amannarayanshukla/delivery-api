@@ -15,7 +15,8 @@ const CartSchema = new Schema(
         totalPrice: {
             type: Number,
             required: true
-        }
+        },
+        offer: String
     }
 );
 
